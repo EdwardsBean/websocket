@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gorilla/websocket"
+	"github.com/edwardsbean/websocket"
 )
 
 var (
