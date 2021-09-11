@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"crypto/tls"
 )
 
 type netDialerFunc func(network, addr string) (net.Conn, error)
@@ -24,6 +25,10 @@ func init() {
 	proxy_RegisterDialerType("http", func(proxyURL *url.URL, forwardDialer proxy_Dialer) (proxy_Dialer, error) {
 		return &httpProxyDialer{proxyURL: proxyURL, forwardDial: forwardDialer.Dial}, nil
 	})
+
+	proxy_RegisterDialerType("https", func(proxyURL *url.URL, forwardDialer proxy_Dialer) (proxy_Dialer, error) {
+		return &httpProxyDialer{proxyURL: proxyURL, forwardDial: forwardDialer.Dial}, nil
+	})
 }
 
 type httpProxyDialer struct {
@@ -33,7 +38,14 @@ type httpProxyDialer struct {
 
 func (hpd *httpProxyDialer) Dial(network string, addr string) (net.Conn, error) {
 	hostPort, _ := hostPortNoPort(hpd.proxyURL)
-	conn, err := hpd.forwardDial(network, hostPort)
+	var conn net.Conn
+	var err error
+	if hpd.proxyURL.Scheme == "https" {
+		config := tls.Config{InsecureSkipVerify: true}
+		conn, err = tls.Dial(network, hostPort, &config)
+	} else {
+		conn, err = hpd.forwardDial(network, hostPort)
+	}
 	if err != nil {
 		return nil, err
 	}

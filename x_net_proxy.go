@@ -27,6 +27,12 @@ func (proxy_direct) Dial(network, addr string) (net.Conn, error) {
 	return net.Dial(network, addr)
 }
 
+type proxy_direct_tls struct{}
+
+func (proxy_direct_tls) Dial(network, addr string) (net.Conn, error) {
+	return net.Dial(network, addr)
+}
+
 // A PerHost directs connections to a default Dialer unless the host name
 // requested matches one of a number of exceptions.
 type proxy_PerHost struct {
